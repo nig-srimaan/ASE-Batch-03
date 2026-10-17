@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  postgres_kb:
+    image: postgres:16-alpine
+    container_name: adaptive_ml_postgres_kb
+    environment:
+      POSTGRES_USER: asek_user
+      POSTGRES_PASSWORD: asek_password
+      POSTGRES_DB: adaptive_ml_kb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U asek_user -d adaptive_ml_kb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: adaptive_ml_backend
+    ports:
+      - "8000:8000"
+    environment:
+      SLA_MIN_ACCURACY: "0.85"
+      SLA_MAX_LATENCY_MS: "100.0"
+      SLA_MAX_CPU_PERCENT: "70.0"
+      PERSISTENT_VIOLATION_WINDOW: "5"
+      RECOVERY_STABILITY_WINDOW: "5"
+      COOLDOWN_SECONDS: "10.0"
+      HYSTERESIS_MARGIN_MS: "12.0"
+    depends_on:
+      postgres_kb:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: adaptive_ml_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - backend

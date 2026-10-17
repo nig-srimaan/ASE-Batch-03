@@ -1,0 +1,22 @@
+{
+  "name": "Self-Adaptive ML Model-Switching System (MAPE-K)",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt && python -m backend.app.cli train",
+  "postStartCommand": "nohup uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 > /tmp/adaptive_ml_server.log 2>&1 &",
+  "forwardPorts": [8000, 5173],
+  "portsAttributes": {
+    "8000": {
+      "label": "Adaptive ML MAPE-K Dashboard & FastAPI Server",
+      "onAutoForward": "openBrowser"
+    },
+    "5173": {
+      "label": "Vite React Dev Server",
+      "onAutoForward": "notify"
+    }
+  }
+}

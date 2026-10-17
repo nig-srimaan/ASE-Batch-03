@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Self-Adaptive ML Model-Switching System (v3.0) | 12-Component MAPE-K Command Center</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --surface: #0f172a;
+      --surface-2: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --indigo: #6366f1;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top right, #1e1b4b 0%, var(--bg) 50%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      line-height: 1.45;
+    }
+    .container { max-width: 1440px; margin: 0 auto; padding: 18px 24px 48px; }
+    .topbar {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
+    }
+    .title-wrap h1 { margin: 0; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .badge-ase {
+      font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+      padding: 4px 10px; border-radius: 999px; background: rgba(99, 102, 241, 0.22);
+      border: 1px solid rgba(99, 102, 241, 0.55); color: #c7d2fe; font-weight: 700;
+    }
+    .title-wrap p { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
+    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    button {
+      background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+      padding: 8px 13px; border-radius: 8px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; transition: all 0.15s ease;
+    }
+    button:hover { border-color: var(--accent); background: #26354d; }
+    button.primary { background: linear-gradient(135deg, #2563eb, #4f46e5); border-color: #6366f1; }
+    button.success { background: rgba(16, 185, 129, 0.18); border-color: rgba(16, 185, 129, 0.5); color: #34d399; }
+    button.danger { background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.45); color: #fda4af; }
+
+    /* Navigation Tabs */
+    .nav-tabs {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px;
+      border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    }
+    .tab-btn {
+      background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border); color: var(--muted);
+      padding: 8px 15px; border-radius: 8px; font-size: 0.83rem; font-weight: 600;
+    }
+    .tab-btn.active {
+      background: rgba(56, 189, 248, 0.16); border-color: var(--accent); color: var(--text);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border);
+      border-radius: 12px; padding: 13px 15px;
+    }
+    .kpi-label { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; margin: 5px 0 4px; display: flex; align-items: baseline; gap: 8px; }
+    .kpi-sub { font-size: 0.77rem; color: var(--muted); }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.71rem; font-weight: 700; }
+    .pill.ok { background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .pill.warn { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .pill.err { background: rgba(244, 63, 94, 0.2); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.45); }
+
+    .main-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; margin-bottom: 18px; }
+    @media (max-width: 1080px) { .main-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px 18px; margin-bottom: 16px;
+    }
+    .panel-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .panel-header h2 { margin: 0; font-size: 0.98rem; font-weight: 600; }
+    .panel-header span { font-size: 0.76rem; color: var(--muted); }
+
+    .mapek-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 16px; }
+    @media (max-width: 960px) { .mapek-row { grid-template-columns: 1fr 1fr; } }
+    .mapek-box {
+      background: rgba(30, 41, 59, 0.65); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 13px;
+    }
+    .mapek-box .phase-tag {
+      font-size: 0.71rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--accent); margin-bottom: 5px;
+    }
+    .mapek-box .phase-body { font-size: 0.8rem; color: #e2e8f0; }
+
+    .scenario-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .scenario-card {
+      text-align: left; display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 12px; border-radius: 9px; background: rgba(30, 41, 59, 0.75);
+      border: 1px solid var(--border); cursor: pointer;
+    }
+    .scenario-card:hover { border-color: var(--accent); background: rgba(30, 41, 59, 1); }
+    .scenario-card strong { display: block; font-size: 0.84rem; color: #e2e8f0; margin-bottom: 2px; }
+    .scenario-card small { color: var(--muted); font-size: 0.75rem; }
+    .scenario-run-tag {
+      font-size: 0.71rem; padding: 4px 8px; border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15); color: var(--accent); font-weight: 700; white-space: nowrap;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid rgba(51, 65, 85, 0.55); }
+    th { color: var(--muted); font-weight: 600; font-size: 0.73rem; text-transform: uppercase; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .controls-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+    .slider-box { background: rgba(30, 41, 59, 0.55); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; }
+    .slider-box label { display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--muted); margin-bottom: 5px; }
+    .slider-box input[type=range] { width: 100%; accent-color: var(--accent); }
+
+    .comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 10px; }
+    .comp-card {
+      background: rgba(30, 41, 59, 0.55); border: 1px solid var(--border);
+      border-radius: 8px; padding: 11px 13px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+    }
+    .comp-card .c-num {
+      width: 26px; height: 26px; border-radius: 6px; background: rgba(99, 102, 241, 0.25);
+      color: #c7d2fe; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    .comp-card .c-info { flex: 1; min-width: 0; }
+    .comp-card .c-info strong { display: block; font-size: 0.83rem; }
+    .comp-card .c-info code { font-size: 0.7rem; color: var(--accent); display: block; margin: 2px 0; }
+    .comp-card .c-info small { font-size: 0.73rem; color: var(--muted); display: block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>
+          Self-Adaptive ML Model-Switching System
+          <span class="badge-ase">v3.0 Ultimate Edition • 12-Component MAPE-K</span>
+        </h1>
+        <p>Bidirectional SLA-Driven Model Adaptation • Persistent Violation Filter • Anti-Thrashing Hysteresis • Canary Verification • XAI</p>
+      </div>
+      <div class="top-actions">
+        <button id="btn-autostream" class="success" onclick="toggleAutoStream()">▶ Start Live Traffic Stream</button>
+        <button class="primary" onclick="stepSingleCycle()">⚡ Step MAPE-K Cycle</button>
+        <button class="danger" onclick="resetAll()">↺ Reset to Baseline</button>
+      </div>
+    </div>
+
+    <!-- Top KPI Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Active Model (Comp #4 &amp; #10)</div>
+        <div class="kpi-value" id="kpi-model-name">XGBoost</div>
+        <div class="kpi-sub">Tier: <strong id="kpi-model-tier">HEAVY</strong> | Switches: <strong id="kpi-switch-count">0</strong> | Canary: <strong id="kpi-canary">HEALTHY</strong></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Accuracy vs SLA (Comp #3 &amp; #6)</div>
+        <div class="kpi-value"><span id="kpi-accuracy">92.0%</span> <span class="pill ok" id="kpi-acc-pill">≥ 85% SLA</span></div>
+        <div class="kpi-sub">F1 Score: <strong id="kpi-f1">89.5%</strong> | Domain: Cyber Intrusion</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Latency &amp; EWMA Forecast (Comp #5)</div>
+        <div class="kpi-value"><span id="kpi-latency">80.0 ms</span> <span class="pill ok" id="kpi-lat-pill">≤ 100 ms</span></div>
+        <div class="kpi-sub">EWMA Next: <strong id="kpi-ewma">80.0 ms</strong> | p95: <strong id="kpi-p95">80.0 ms</strong> | Load: <strong id="kpi-workload">60</strong> req/m</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">CPU &amp; Memory Telemetry (Comp #5)</div>
+        <div class="kpi-value"><span id="kpi-cpu">65.0%</span> <span class="pill ok" id="kpi-cpu-pill">≤ 70% SLA</span></div>
+        <div class="kpi-sub">Memory: <strong id="kpi-mem">42.0%</strong> | Served: <strong id="kpi-preds">1</strong> reqs</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Stability &amp; Hysteresis (Comp #9)</div>
+        <div class="kpi-value" style="font-size:1.02rem; margin-top:8px;"><span class="pill ok" id="kpi-stab-state">OPTIMAL_STABLE</span></div>
+        <div class="kpi-sub">Breaches: <strong id="kpi-breaches">0/5</strong> | Stable: <strong id="kpi-stable">1/5</strong> | Absorbed Spikes: <strong id="kpi-absorbed">0</strong></div>
+      </div>
+    </div>
+
+    <!-- 5 Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-live', this)">1. Live MAPE-K Command Center</button>
+      <button class="tab-btn" onclick="switchTab('tab-ablation', this)">2. Ablation Benchmark (Proposed vs. Naive Thrashing)</button>
+      <button class="tab-btn" onclick="switchTab('tab-xai', this)">3. Live Packet Prediction &amp; XAI Lab</button>
+      <button class="tab-btn" onclick="switchTab('tab-components', this)">4. 12-Component Architecture &amp; Viva Q&amp;A</button>
+      <button class="tab-btn" onclick="switchTab('tab-prometheus', this)">5. Knowledge Base &amp; Prometheus Metrics</button>
+    </div>
+
+    <!-- TAB 1: LIVE MAPE-K COMMAND CENTER -->
+    <div id="tab-live" class="tab-pane active">
+      <div class="mapek-row">
+        <div class="mapek-box"><div class="phase-tag">1. Monitor (Comp #5)</div><div class="phase-body" id="mapek-m"></div></div>
+        <div class="mapek-box"><div class="phase-tag">2. Analyze (Comp #6 &amp; #9)</div><div class="phase-body" id="mapek-a"></div></div>
+        <div class="mapek-box"><div class="phase-tag">3. Plan (Comp #8)</div><div class="phase-body" id="mapek-p"></div></div>
+        <div class="mapek-box"><div class="phase-tag">4. Execute (Comp #10)</div><div class="phase-body" id="mapek-e"></div></div>
+        <div class="mapek-box"><div class="phase-tag">5. Knowledge (Comp #11)</div><div class="phase-body" id="mapek-k"></div></div>
+      </div>
+
+      <div class="main-grid">
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-header">
+            <h2>📈 Real-Time Latency Telemetry vs. SLA Ceiling &amp; Hysteresis Recovery Zone</h2>
+            <span>Red = Max Latency SLA (100ms) • Green = Hysteresis Upgrade Ceiling (88ms)</span>
+          </div>
+          <svg id="telemetry-svg" viewBox="0 0 780 245" style="width:100%; height:auto; background:rgba(7,11,20,0.75); border-radius:8px; border:1px solid rgba(51,65,85,0.5);"></svg>
+
+          <div class="controls-row">
+            <div class="slider-box">
+              <label><span>Incoming Traffic Workload</span><strong id="lbl-workload">60 req/min</strong></label>
+              <input type="range" id="sld-workload" min="30" max="240" step="5" value="60" onchange="onWorkloadChange(this.value)" oninput="document.getElementById('lbl-workload').innerText = this.value + ' req/min'" />
+            </div>
+            <div class="slider-box">
+              <label><span>Latency SLA Ceiling</span><strong id="lbl-sla-lat">100 ms</strong></label>
+              <input type="range" id="sld-sla-lat" min="50" max="150" step="5" value="100" onchange="onSlaChange()" oninput="document.getElementById('lbl-sla-lat').innerText = this.value + ' ms'" />
+            </div>
+            <div class="slider-box">
+              <label><span>Accuracy SLA Minimum</span><strong id="lbl-sla-acc">85%</strong></label>
+              <input type="range" id="sld-sla-acc" min="75" max="90" step="1" value="85" onchange="onSlaChange()" oninput="document.getElementById('lbl-sla-acc').innerText = this.value + '%'" />
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-header">
+            <h2>🎓 Interactive Viva Demonstration Scenarios</h2>
+            <span>1-Click Deterministic Proofs</span>
+          </div>
+          <div class="scenario-grid">
+            <div class="scenario-card" onclick="triggerScenario('temporary_fluctuation')">
+              <div>
+                <strong>Case 1: Temporary Fluctuation (No Switch)</strong>
+                <small>Injects <code>90 → 105 → 98 → 103 → 95 ms</code>. Brief SLA crossings are absorbed without switching.</small>
+              </div>
+              <span class="scenario-run-tag">▶ Run Case 1</span>
+            </div>
+            <div class="scenario-card" onclick="triggerScenario('persistent_violation')">
+              <div>
+                <strong>Case 2: Persistent SLA Violation (XGBoost → RF)</strong>
+                <small>Injects sustained <code>105 → 112 → 120 → 130 → 125 ms</code> (5 breaches). Switches to Random Forest.</small>
+              </div>
+              <span class="scenario-run-tag">▶ Run Case 2</span>
+            </div>
+            <div class="scenario-card" onclick="triggerScenario('accuracy_sla_guard')">
+              <div>
+                <strong>Case 3: Accuracy SLA Constraint Check (≥ 85%)</strong>
+                <small>Shows why Logistic Regression (<code>20ms</code> latency, <code>82%</code> accuracy) is rejected when Accuracy SLA = 85%.</small>
+              </div>
+              <span class="scenario-run-tag">▶ Run Case 3</span>
+            </div>
+            <div class="scenario-card" onclick="triggerScenario('cooldown_recovery')">
+              <div>
+                <strong>Case 4: Cooldown &amp; Bidirectional Hysteresis Recovery</strong>
+                <small>Workload cools down (<code>65 → 62 → 60 → 58 → 57 ms</code>). Stabilizes &amp; switches back <code>RF → XGBoost</code>.</small>
+              </div>
+              <span class="scenario-run-tag">▶ Run Case 4</span>
+            </div>
+            <div class="scenario-card" style="border-color:rgba(99,102,241,0.6); background:rgba(49,46,129,0.28);" onclick="triggerScenario('full_lifecycle')">
+              <div>
+                <strong>★ Full End-to-End Bidirectional Lifecycle (15 Steps)</strong>
+                <small>Runs Normal → Temporary Fluctuation → Persistent Violation Switch → Hysteresis Switch-Back.</small>
+              </div>
+              <span class="scenario-run-tag" style="background:rgba(99,102,241,0.35); color:#c7d2fe;">▶ Run All 15 Steps</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-grid">
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-header">
+            <h2>⚖️ Adaptive Model Selector — Candidate Feasibility Matrix (Comp #2, #3, #8)</h2>
+            <span>Hard SLA Constraint Filtering &amp; Utility Ranking</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Model Name</th>
+                <th>Tier</th>
+                <th class="num">Accuracy</th>
+                <th class="num">Base Latency</th>
+                <th class="num">Projected Latency</th>
+                <th class="num">Projected CPU</th>
+                <th class="num">Utility</th>
+                <th>SLA Feasibility Status</th>
+              </tr>
+            </thead>
+            <tbody id="candidate-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="panel" style="margin-bottom:0">
+          <div class="panel-header">
+            <h2>📜 Knowledge Base — Recent Adaptation &amp; Scenario Log (Comp #11)</h2>
+            <span>Step-by-Step Audit Trail</span>
+          </div>
+          <div style="max-height:220px; overflow-y:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time / Step</th>
+                  <th>Transition</th>
+                  <th>State / Reason</th>
+                </tr>
+              </thead>
+              <tbody id="adaptation-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ABLATION STUDY & ANTI-THRASHING BENCHMARK -->
+    <div id="tab-ablation" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>🏆 Quantitative Ablation Study: Proposed MAPE-K vs. Naive Reactive Switcher vs. Static Baselines</h2>
+          <span>Evaluated across a 30-Tick Multi-Phase Traffic Trace (Normal → Micro-Spikes → Surge → Oscillatory Zone → Recovery)</span>
+        </div>
+        <p id="ablation-finding" style="margin:0 0 14px; padding:10px 14px; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:8px; color:#a7f3d0; font-size:0.86rem;"></p>
+        <table>
+          <thead>
+            <tr>
+              <th>Adaptation Policy</th>
+              <th class="num">Total Model Switches</th>
+              <th class="num">Thrashing / Oscillation Events</th>
+              <th class="num">Mean Latency (ms)</th>
+              <th class="num">Mean Accuracy (%)</th>
+              <th class="num">Latency SLA Compliance</th>
+              <th class="num">Overall SLA Compliance (Acc + Lat)</th>
+            </tr>
+          </thead>
+          <tbody id="ablation-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>📉 Visual Proof of Thrashing Prevention: Proposed MAPE-K (Cyan) vs. Naive Reactive Switcher (Amber) vs. Static XGBoost (Rose)</h2>
+          <span>Notice how Naive Reactive oscillates wildly in Ticks 16–22 while Proposed MAPE-K remains completely stable</span>
+        </div>
+        <svg id="ablation-svg" viewBox="0 0 900 260" style="width:100%; height:auto; background:rgba(7,11,20,0.75); border-radius:8px; border:1px solid rgba(51,65,85,0.5);"></svg>
+      </div>
+    </div>
+
+    <!-- TAB 3: INTERACTIVE PACKET PREDICTION & XAI LAB -->
+    <div id="tab-xai" class="tab-pane">
+      <div class="main-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>🛡️ Cybersecurity Network Flow Presets (Component #4: Prediction Service)</h2>
+            <span>Click a traffic profile to run live inference on the currently active ML model</span>
+          </div>
+          <div class="scenario-grid">
+            <div class="scenario-card" onclick="runPresetPrediction('normal_web_https')">
+              <div>
+                <strong>🌐 Normal HTTPS Web Browsing Flow</strong>
+                <small>Balanced bidirectional TLS session with normal packet inter-arrival times.</small>
+              </div>
+              <span class="scenario-run-tag">Predict Flow</span>
+            </div>
+            <div class="scenario-card" onclick="runPresetPrediction('syn_flood_ddos')">
+              <div>
+                <strong>🚨 SYN Flood DDoS Attack Burst</strong>
+                <small>High-rate half-open SYN flood with extreme packet rate and anomalous flow flags.</small>
+              </div>
+              <span class="scenario-run-tag">Predict Flow</span>
+            </div>
+            <div class="scenario-card" onclick="runPresetPrediction('port_scan_probe')">
+              <div>
+                <strong>🕵️ Stealth SYN Port Scan Probe</strong>
+                <small>Rapid short-duration probing across sequential ports with minimal payload bytes.</small>
+              </div>
+              <span class="scenario-run-tag">Predict Flow</span>
+            </div>
+            <div class="scenario-card" onclick="runPresetPrediction('benign_file_transfer')">
+              <div>
+                <strong>☁️ Benign Cloud Backup Transfer</strong>
+                <small>Sustained high-byte legitimate backup stream with steady ACK ratios.</small>
+              </div>
+              <span class="scenario-run-tag">Predict Flow</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <h2>🔬 Live Prediction Output &amp; Top-5 Feature Attribution (Local Sensitivity XAI)</h2>
+            <span id="xai-served-by">Served by Active Model</span>
+          </div>
+          <div id="xai-result-box" style="padding:12px; background:rgba(30,41,59,0.55); border-radius:8px; margin-bottom:12px;">
+            Click any network flow preset on the left to inspect its classification probability and top 5 contributing cybersecurity features.
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Network Flow Feature</th>
+                <th class="num">Standardized Value</th>
+                <th class="num">Impact on Attack Probability</th>
+                <th>Direction</th>
+              </tr>
+            </thead>
+            <tbody id="xai-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 12-COMPONENT ARCHITECTURE & VIVA Q&A -->
+    <div id="tab-components" class="tab-pane">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>🧩 All 12 Architectural Components — Live Module Health &amp; Codebase Mapping</h2>
+          <span>Complete traceability from architecture diagram to Python &amp; React modules</span>
+        </div>
+        <div class="comp-grid" id="comp-registry-grid"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>🎤 Examiner Viva Defense Cheat-Sheet (Key Questions &amp; Answers)</h2>
+          <span>Also available in docs/VIVA_DEFENSE_GUIDE.md &amp; docs/IEEE_PROJECT_REPORT.md</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:32%">Examiner Question</th>
+              <th>Core Technical Answer &amp; Where to Point in Code</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Where is the Adaptive Software Engineering (ASE) part?</strong></td>
+              <td>Point to Components <strong>#5 (Runtime Monitoring)</strong>, <strong>#6 (SLA Manager)</strong>, <strong>#7 (MAPE-K Engine)</strong>, <strong>#8 (Adaptive Model Selector)</strong>, <strong>#9 (Stability &amp; Hysteresis Manager)</strong>, <strong>#10 (Model Switching Manager)</strong>, and <strong>#11 (Knowledge Base)</strong>. Together they form a closed self-adaptive feedback loop.</td>
+            </tr>
+            <tr>
+              <td><strong>2. Why doesn't the system switch on temporary spikes (`90 → 105 → 98 → 103 → 95 ms`)?</strong></td>
+              <td>In <code>c09_stability_hysteresis.py</code>, we enforce a <strong>Persistent Violation Window (`N = 5` consecutive breaches)</strong>. When latency drops back to `98 ms` on the next tick, the breach counter resets to `0` and logs <code>TRANSIENT_FLUCTUATION_ABSORBED</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>3. Why choose Random Forest (`60ms`) instead of Logistic Regression (`20ms`) during high load?</strong></td>
+              <td>In <code>c08_model_selector.py</code>, candidates violating hard SLA constraints are filtered out first. Logistic Regression has <code>82%</code> accuracy, violating our <strong>Accuracy SLA (`≥ 85%`)</strong>. Random Forest achieves <code>88%</code> accuracy and <code>~65ms</code> latency, satisfying all SLAs.</td>
+            </tr>
+            <tr>
+              <td><strong>4. How do you prevent model oscillation (thrashing) when load cools down?</strong></td>
+              <td>Our <strong>Bidirectional Hysteresis</strong> rule in <code>c09_stability_hysteresis.py</code> requires: (1) post-switch cooldown expiry, (2) <code>5</code> consecutive stable ticks, and (3) projected XGBoost latency ≤ <code>SLA - Hysteresis Margin (100 - 12 = 88 ms)</code> before switching back.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: KNOWLEDGE BASE & PROMETHEUS METRICS -->
+    <div id="tab-prometheus" class="tab-pane">
+      <div class="main-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <h2>🗄️ Component #10 &amp; #11: Canary Verification &amp; Knowledge Base Summary</h2>
+            <span>PostgreSQL / SQLite Relational Persistence</span>
+          </div>
+          <pre id="kb-json-view" style="background:#070b14; padding:14px; border-radius:8px; border:1px solid var(--border); color:#93c5fd; font-size:0.78rem; overflow-x:auto; max-height:340px;"></pre>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h2>📊 Component #5: Live Prometheus Scrape Endpoint (<code>GET /metrics</code>)</h2>
+            <span>Scraped every 2s by Prometheus Server</span>
+          </div>
+          <pre id="prom-metrics-view" style="background:#070b14; padding:14px; border-radius:8px; border:1px solid var(--border); color:#6ee7b7; font-size:0.78rem; overflow-x:auto; max-height:340px;"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let streamTimer = null;
+
+    function switchTab(tabId, btnEl) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btnEl.classList.add('active');
+      if (tabId === 'tab-prometheus') refreshPrometheusText();
+    }
+
+    async function apiCall(path, options = {}) {
+      const res = await fetch(path, options);
+      return await res.json();
+    }
+
+    async function refreshPrometheusText() {
+      try {
+        const res = await fetch('/metrics');
+        const txt = await res.text();
+        document.getElementById('prom-metrics-view').innerText = txt;
+      } catch (e) {
+        document.getElementById('prom-metrics-view').innerText = '# Prometheus metrics endpoint available when FastAPI server is running';
+      }
+    }
+
+    function renderChart(history, slaLimit, hystMargin) {
+      const svg = document.getElementById('telemetry-svg');
+      const W = 780, H = 245;
+      const pad = { t: 22, r: 28, b: 30, l: 48 };
+      const pw = W - pad.l - pad.r;
+      const ph = H - pad.t - pad.b;
+      const maxVal = Math.max(145, slaLimit + 30, ...history.map(h => h.latency_ms || 0));
+      const yOf = (v) => pad.t + ph - Math.max(0, Math.min(1, v / maxVal)) * ph;
+      const xOf = (i) => history.length <= 1 ? pad.l + pw / 2 : pad.l + (i / (history.length - 1)) * pw;
+
+      let html = '';
+      [25, 50, 75, 100, 125].forEach(gv => {
+        if (gv <= maxVal) {
+          const gy = yOf(gv);
+          html += `<line x1="${pad.l}" y1="${gy}" x2="${W - pad.r}" y2="${gy}" stroke="rgba(51,65,85,0.4)" stroke-width="1"/>`;
+          html += `<text x="${pad.l - 8}" y="${gy + 4}" fill="#64748b" font-size="10" text-anchor="end">${gv}ms</text>`;
+        }
+      });
+
+      const slaY = yOf(slaLimit);
+      html += `<line x1="${pad.l}" y1="${slaY}" x2="${W - pad.r}" y2="${slaY}" stroke="#f43f5e" stroke-width="2" stroke-dasharray="6 4"/>`;
+      html += `<text x="${W - pad.r - 4}" y="${slaY - 6}" fill="#fb7185" font-size="11" font-weight="600" text-anchor="end">SLA Ceiling (${slaLimit} ms)</text>`;
+
+      const hystVal = Math.max(10, slaLimit - hystMargin);
+      const hystY = yOf(hystVal);
+      html += `<line x1="${pad.l}" y1="${hystY}" x2="${W - pad.r}" y2="${hystY}" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+      html += `<text x="${W - pad.r - 4}" y="${hystY + 13}" fill="#34d399" font-size="10" text-anchor="end">Hysteresis Upgrade Ceiling (${hystVal} ms)</text>`;
+
+      if (history.length > 1) {
+        const pts = history.map((d, i) => `${xOf(i).toFixed(1)},${yOf(d.latency_ms).toFixed(1)}`).join(' ');
+        html += `<polyline fill="none" stroke="#38bdf8" stroke-width="2.5" points="${pts}"/>`;
+      }
+
+      history.forEach((d, i) => {
+        const cx = xOf(i).toFixed(1);
+        const cy = yOf(d.latency_ms).toFixed(1);
+        const isSwitch = d.event_tag === 'SWITCHED_ACTIVE_MODEL';
+        const isBreach = d.latency_ms > slaLimit;
+        const fill = isSwitch ? '#f59e0b' : (isBreach ? '#f43f5e' : '#38bdf8');
+        const r = isSwitch ? 6.5 : 4;
+        html += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="#070b14" stroke-width="1.5"><title>${d.active_model}: ${d.latency_ms} ms</title></circle>`;
+        if (isSwitch || i === history.length - 1 || history.length <= 16) {
+          html += `<text x="${cx}" y="${cy - 8}" fill="#e2e8f0" font-size="9.5" text-anchor="middle">${Math.round(d.latency_ms)}</text>`;
+        }
+      });
+
+      svg.innerHTML = html;
+    }
+
+    function renderAblationSection(ablation) {
+      if (!ablation) return;
+      document.getElementById('ablation-finding').innerHTML = `<strong>Key Experimental Finding:</strong> ${ablation.key_finding}`;
+      const tbody = document.getElementById('ablation-tbody');
+      tbody.innerHTML = (ablation.summary_table || []).map(row => {
+        const isProp = row.policy_id === 'proposed_mapek';
+        const rowStyle = isProp ? 'background:rgba(16,185,129,0.12); font-weight:600;' : '';
+        const thrashPill = row.thrashing_events === 0
+          ? `<span class="pill ok">0 (Stable)</span>`
+          : `<span class="pill err">${row.thrashing_events} (Oscillating!)</span>`;
+        return `<tr style="${rowStyle}">
+          <td>${isProp ? '★ ' : ''}${row.policy_name}</td>
+          <td class="num">${row.total_switches}</td>
+          <td class="num">${thrashPill}</td>
+          <td class="num">${row.avg_latency_ms} ms</td>
+          <td class="num">${row.avg_accuracy_percent}%</td>
+          <td class="num">${row.latency_sla_compliance_percent}%</td>
+          <td class="num"><span class="pill ${row.overall_sla_compliance_percent >= 85 ? 'ok' : 'warn'}">${row.overall_sla_compliance_percent}%</span></td>
+        </tr>`;
+      }).join('');
+
+      // Render multi-line comparison SVG
+      const svg = document.getElementById('ablation-svg');
+      const W = 900, H = 260;
+      const pad = { t: 24, r: 30, b: 32, l: 48 };
+      const pw = W - pad.l - pad.r;
+      const ph = H - pad.t - pad.b;
+      const maxVal = 145;
+      const n = ablation.total_ticks || 30;
+      const yOf = (v) => pad.t + ph - Math.max(0, Math.min(1, v / maxVal)) * ph;
+      const xOf = (i) => pad.l + (i / (n - 1)) * pw;
+
+      let html = '';
+      const slaY = yOf(ablation.sla_latency_ms || 100);
+      html += `<line x1="${pad.l}" y1="${slaY}" x2="${W - pad.r}" y2="${slaY}" stroke="#f43f5e" stroke-width="1.8" stroke-dasharray="6 4"/>`;
+      html += `<text x="${W - pad.r - 4}" y="${slaY - 6}" fill="#fb7185" font-size="10.5" text-anchor="end">100ms SLA Limit</text>`;
+
+      const drawLine = (series, color, width, dash = '') => {
+        const pts = series.map((d, i) => `${xOf(i).toFixed(1)},${yOf(d.latency_ms).toFixed(1)}`).join(' ');
+        html += `<polyline fill="none" stroke="${color}" stroke-width="${width}" ${dash ? `stroke-dasharray="${dash}"` : ''} points="${pts}"/>`;
+      };
+
+      if (ablation.traces) {
+        drawLine(ablation.traces.static_xgboost, '#f43f5e', 1.6, '3 3');
+        drawLine(ablation.traces.naive_reactive, '#f59e0b', 2.0);
+        drawLine(ablation.traces.proposed_mapek, '#38bdf8', 3.0);
+      }
+      svg.innerHTML = html;
+    }
+
+    function renderDashboard(st, stepsLog = null) {
+      if (!st) return;
+      document.getElementById('kpi-model-name').innerText = st.active_model.name;
+      document.getElementById('kpi-model-tier').innerText = st.active_model.tier;
+      document.getElementById('kpi-switch-count').innerText = st.switching_stats.total_switches;
+      document.getElementById('kpi-canary').innerText = st.switching_stats.circuit_breaker_trips === 0 ? 'CLOSED_OK' : 'TRIPPED';
+
+      document.getElementById('kpi-accuracy').innerText = (st.active_model.accuracy * 100).toFixed(1) + '%';
+      document.getElementById('kpi-f1').innerText = ((st.active_model.f1_score || 0.88) * 100).toFixed(1) + '%';
+      const accPill = document.getElementById('kpi-acc-pill');
+      accPill.innerText = `≥ ${(st.sla.thresholds.min_accuracy_sla * 100).toFixed(0)}% SLA`;
+      accPill.className = 'pill ' + (st.sla.accuracy_ok !== false ? 'ok' : 'err');
+
+      document.getElementById('kpi-latency').innerText = st.metrics.latest_latency_ms.toFixed(1) + ' ms';
+      document.getElementById('kpi-ewma').innerText = (st.metrics.forecast_next_latency_ms || st.metrics.latest_latency_ms).toFixed(1) + ' ms';
+      document.getElementById('kpi-p95').innerText = st.metrics.p95_latency_ms.toFixed(1) + ' ms';
+      document.getElementById('kpi-workload').innerText = Math.round(st.metrics.workload_req_per_min);
+      const latPill = document.getElementById('kpi-lat-pill');
+      latPill.innerText = `≤ ${st.sla.thresholds.max_latency_sla_ms} ms`;
+      latPill.className = 'pill ' + (st.metrics.latest_latency_ms <= st.sla.thresholds.max_latency_sla_ms ? 'ok' : 'err');
+
+      document.getElementById('kpi-cpu').innerText = st.metrics.cpu_percent.toFixed(1) + '%';
+      document.getElementById('kpi-mem').innerText = st.metrics.memory_percent.toFixed(1) + '%';
+      document.getElementById('kpi-preds').innerText = st.metrics.total_predictions_served;
+      const cpuPill = document.getElementById('kpi-cpu-pill');
+      cpuPill.innerText = `≤ ${st.sla.thresholds.max_cpu_sla_percent}% SLA`;
+      cpuPill.className = 'pill ' + (st.metrics.cpu_percent <= st.sla.thresholds.max_cpu_sla_percent ? 'ok' : 'warn');
+
+      const stabEl = document.getElementById('kpi-stab-state');
+      stabEl.innerText = st.stability.state;
+      stabEl.className = 'pill ' + (st.stability.state.includes('VIOLATION') ? 'err' : (st.stability.state.includes('WATCH') || st.stability.state.includes('STABILIZING') ? 'warn' : 'ok'));
+      document.getElementById('kpi-breaches').innerText = `${st.stability.consecutive_violations}/${st.stability.persistent_violation_window}`;
+      document.getElementById('kpi-stable').innerText = `${st.stability.consecutive_stable_samples}/${st.stability.recovery_stability_window}`;
+      document.getElementById('kpi-absorbed').innerText = st.stability.transient_fluctuations_absorbed;
+
+      const tr = st.last_mapek_trace || {};
+      if (tr.monitor) {
+        document.getElementById('mapek-m').innerHTML = `<strong>${tr.monitor.active_model_name}</strong> @ <strong>${tr.monitor.latest_latency_ms} ms</strong> | CPU: ${tr.monitor.cpu_percent}% | Load: ${tr.monitor.workload_req_per_min} req/m`;
+        document.getElementById('mapek-a').innerHTML = `<strong>${tr.analyze.stability_state}</strong>: ${tr.analyze.stability_explanation}`;
+        document.getElementById('mapek-p').innerHTML = tr.plan.selection_rationale;
+        document.getElementById('mapek-e').innerHTML = `<strong>${tr.execute.action}</strong><br/><span style="color:#94a3b8">${tr.execute.reason || ''}</span>`;
+        document.getElementById('mapek-k').innerHTML = `Cycle #${tr.cycle_number || 1} | Logged Switches: <strong>${st.knowledge_base.total_adaptations_logged}</strong>`;
+      }
+
+      const cbody = document.getElementById('candidate-tbody');
+      const baseMap = { xgboost: 80, random_forest: 60, logistic_regression: 20 };
+      cbody.innerHTML = (st.candidate_evaluations || []).map(c => {
+        const pillCls = c.is_feasible ? 'ok' : 'err';
+        const activeBadge = c.is_current_model ? ' <span class="pill ok" style="margin-left:4px">ACTIVE</span>' : '';
+        return `<tr>
+          <td><strong>${c.name}</strong>${activeBadge}</td>
+          <td>${c.tier}</td>
+          <td class="num">${(c.accuracy * 100).toFixed(1)}%</td>
+          <td class="num">${baseMap[c.model_id] || 60} ms</td>
+          <td class="num"><strong>${c.projected_latency_ms.toFixed(1)} ms</strong></td>
+          <td class="num">${c.projected_cpu_percent.toFixed(1)}%</td>
+          <td class="num">${c.utility_score.toFixed(3)}</td>
+          <td><span class="pill ${pillCls}">${c.status}</span></td>
+        </tr>`;
+      }).join('');
+
+      const abody = document.getElementById('adaptation-tbody');
+      if (stepsLog && stepsLog.length > 0) {
+        abody.innerHTML = stepsLog.map(s => {
+          const switched = s.active_model_before !== s.active_model_after;
+          const badge = switched
+            ? `<span class="pill warn">${s.active_model_before} → ${s.active_model_after}</span>`
+            : `<span class="pill ok">${s.active_model_after} (held)</span>`;
+          return `<tr>
+            <td><strong>${s.step_note}</strong></td>
+            <td>${badge}</td>
+            <td><strong>${s.stability_state}</strong>: ${s.explanation}</td>
+          </tr>`;
+        }).join('');
+      } else if ((st.recent_adaptations || []).length > 0) {
+        abody.innerHTML = st.recent_adaptations.map(a => `<tr>
+          <td>${a.iso_time}</td>
+          <td><span class="pill warn">${a.from_model} → ${a.to_model}</span></td>
+          <td>${a.reason}</td>
+        </tr>`).join('');
+      } else {
+        abody.innerHTML = `<tr><td colspan="3" style="color:#94a3b8">No model switches triggered yet. Click any Viva Scenario button on the right to observe live adaptation!</td></tr>`;
+      }
+
+      const cgrid = document.getElementById('comp-registry-grid');
+      cgrid.innerHTML = (st.components_registry || []).map(c => `
+        <div class="comp-card">
+          <span class="c-num">${c.id}</span>
+          <div class="c-info">
+            <strong>${c.name}</strong>
+            <code>${c.file}</code>
+            <small>${c.role || ''}</small>
+          </div>
+          <span class="pill ok">${c.status}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('kb-json-view').innerText = JSON.stringify({
+        knowledge_base: st.knowledge_base,
+        switching_and_canary_stats: st.switching_stats,
+        sla_configuration: st.sla.thresholds,
+      }, null, 2);
+
+      renderChart(
+        st.telemetry_history || [],
+        st.sla.thresholds.max_latency_sla_ms,
+        st.stability.hysteresis_latency_margin_ms
+      );
+      renderAblationSection(st.ablation_benchmark);
+    }
+
+    async function runPresetPrediction(presetId) {
+      const res = await apiCall('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preset_id: presetId })
+      });
+      if (res) {
+        const isAtk = res.prediction === 1;
+        document.getElementById('xai-served-by').innerText = `Served by ${res.model_display_name} (${(res.model_accuracy*100).toFixed(0)}% Acc) in ${res.latency_ms} ms`;
+        document.getElementById('xai-result-box').innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong style="font-size:0.95rem;">Preset: ${res.preset_used || presetId}</strong><br/>
+              <span style="color:#94a3b8; font-size:0.82rem;">Benign Prob: ${(res.probabilities[0]*100).toFixed(1)}% | Attack Prob: ${(res.probabilities[1]*100).toFixed(1)}%</span>
+            </div>
+            <span class="pill ${isAtk ? 'err' : 'ok'}" style="font-size:0.85rem; padding:5px 12px;">${res.label} (${(res.confidence*100).toFixed(1)}%)</span>
+          </div>
+        `;
+        document.getElementById('xai-tbody').innerHTML = (res.top_feature_attributions || []).map(f => `
+          <tr>
+            <td><code>${f.feature}</code></td>
+            <td class="num">${f.value}</td>
+            <td class="num"><strong>${f.impact_on_attack_prob >= 0 ? '+' : ''}${f.impact_on_attack_prob}</strong></td>
+            <td><span class="pill ${f.direction === 'INCREASES_RISK' ? 'warn' : 'ok'}">${f.direction}</span></td>
+          </tr>
+        `).join('');
+        await loadStatus();
+      }
+    }
+
+    function toggleAutoStream() {
+      const btn = document.getElementById('btn-autostream');
+      if (streamTimer) {
+        clearInterval(streamTimer);
+        streamTimer = null;
+        btn.innerText = '▶ Start Live Traffic Stream';
+        btn.className = 'success';
+      } else {
+        btn.innerText = '⏸ Pause Live Traffic Stream';
+        btn.className = 'danger';
+        streamTimer = setInterval(() => {
+          stepSingleCycle();
+        }, 1800);
+      }
+    }
+
+    async function loadStatus() {
+      const st = await apiCall('/api/status');
+      renderDashboard(st);
+    }
+    async function stepSingleCycle() {
+      await apiCall('/api/mapek/step?ignore_cooldown=true', { method: 'POST' });
+      await loadStatus();
+    }
+    async function triggerScenario(scenarioId) {
+      const res = await apiCall('/api/scenarios/run', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scenario_id: scenarioId })
+      });
+      if (res && res.system_status) renderDashboard(res.system_status, res.steps_log);
+    }
+    async function onWorkloadChange(val) {
+      await apiCall('/api/workload', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ req_per_min: Number(val), noise_std_ms: 1.5 })
+      });
+      await loadStatus();
+    }
+    async function onSlaChange() {
+      const lat = Number(document.getElementById('sld-sla-lat').value);
+      const acc = Number(document.getElementById('sld-sla-acc').value) / 100.0;
+      await apiCall('/api/sla', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ max_latency_sla_ms: lat, min_accuracy_sla: acc })
+      });
+      await loadStatus();
+    }
+    async function resetAll() {
+      const st = await apiCall('/api/reset?clear_history=true', { method: 'POST' });
+      renderDashboard(st, []);
+    }
+    loadStatus();
+  </script>
+</body>
+</html>
